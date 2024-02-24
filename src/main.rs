@@ -24,7 +24,7 @@ async fn main() {
         clear_background(BLACK);
         if state.winner.is_none() {
 
-            let index_selected = get_mouse_input();
+            let index_selected = get_keyboard_input();
             
             if let Some(index) = index_selected {
                 let value = if state.is_x_turn {Cell::X} else {Cell::O};
@@ -52,7 +52,7 @@ async fn main() {
     
 }
 fn calculate_cell_boundaries(board_center: (f32, f32)) -> [Rect; 9] {
-    let top_left_position = ((board_center.0 - THREE_HALF_CELL_SIZE), (board_center.1 - HALF_CELL_SIZE));
+    let top_left_position = ((board_center.0 - THREE_HALF_CELL_SIZE), (board_center.1 - THREE_HALF_CELL_SIZE));
     let left_position = ((board_center.0 - THREE_HALF_CELL_SIZE), (board_center.1 - HALF_CELL_SIZE));
     let top_right_position = ((board_center.0 - THREE_HALF_CELL_SIZE), (board_center.1 + HALF_CELL_SIZE));
     let top_position = ((board_center.0 - HALF_CELL_SIZE), (board_center.1 - THREE_HALF_CELL_SIZE));
