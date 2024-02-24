@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 macroquad = "0.4.5"
 games = { git = "https://github.com/daniel-j-anderson-dev/games.git" }
+server = { git = "https://github.com/daniel-j-anderson-dev/tic_tac_toe_server.git" }
