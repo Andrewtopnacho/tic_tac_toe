@@ -14,43 +14,30 @@ const RADIUS: f32 = CELL_SIZE * 0.5;
 async fn main() {
     let mut board = Board::default();
     let mut is_x_turn  = true;
+    let mut is_game_over = false;
 
 
     loop {
         clear_background(BLACK);
+        if !is_game_over {
 
-        let mut index_selected: Option<CellIndex> = if is_key_pressed(KeyCode::Key1) {
-            Some(CellIndex::TOP_LEFT)
-        } else if is_key_pressed(KeyCode::Key2) {
-            Some(CellIndex::TOP_MIDDLE)
-        } else if is_key_pressed(KeyCode::Key3) {
-            Some(CellIndex::TOP_RIGHT)
-        } else if is_key_pressed(KeyCode::Key4) {
-            Some(CellIndex::MIDDLE_LEFT)
-        } else if is_key_pressed(KeyCode::Key5) {
-            Some(CellIndex::CENTER)
-        } else if is_key_pressed(KeyCode::Key6) {
-            Some(CellIndex::MIDDLE_RIGHT)
-        } else if is_key_pressed(KeyCode::Key7) {
-            Some(CellIndex::BOTTOM_LEFT)
-        } else if is_key_pressed(KeyCode::Key8) {
-            Some(CellIndex::BOTTOM_MIDDLE)
-        } else if is_key_pressed(KeyCode::Key9) {
-            Some(CellIndex::BOTTOM_RIGHT)
+            let index_selected = get_keyboard_input();
+            
+            if let Some(index) = index_selected {
+                let value = if is_x_turn {Cell::X} else {Cell::O};
+                board.set_cell(index, value);
+                is_x_turn = !is_x_turn;
+            }
+    
+            draw_board(screen_width() / 2.0, screen_height() / 2.0, &board);
+            
+            is_game_over = board.get_winner().is_some(); 
         } else {
-            None
-        };
-
-        if let Some(index) = index_selected {
-            let value = if is_x_turn {Cell::X} else {Cell::O};
-            board.set_cell(index, value);
-            is_x_turn = !is_x_turn;
-        }
-
-        draw_board(screen_width() / 2.0, screen_height() / 2.0, &board);
-        
-        if board.get_winner().is_some() {
-            break;
+            let text = "Press SPACE to PLAY AGAIN Press ESC to EXIT";
+            let font_size = screen_width() * 0.05; 
+            let text_width = measure_text(text, None, font_size as u16, 1.0).width;
+            let text_position = ((screen_width() - text_width) / 2.0, screen_height() / 2.0);
+            draw_text(text, text_position.0, text_position.1, font_size, WHITE);
         }
 
         next_frame().await
@@ -60,7 +47,7 @@ async fn main() {
 fn draw_board(x: f32, y: f32, board: &Board) {
     draw_grid(x, y);
     for (cell_index, cell) in board.iter_enumerated() {
-        let cell_center = calculate_cell_center(x, y, cell_index);
+        let (x, y) = calculate_cell_center(x, y, cell_index);
         match cell {
             Cell::Empty => (),
             Cell::O => draw_o(x, y),
@@ -113,7 +100,29 @@ fn draw_x(x: f32, y: f32) {
         draw_line(line.0.0, line.0.1, line.1.0, line.1.1, THICKNESS, WHITE);
     }
 }
-
+fn get_keyboard_input() -> Option<CellIndex> {
+    return if is_key_pressed(KeyCode::Key1) {
+        Some(CellIndex::TOP_LEFT)
+    } else if is_key_pressed(KeyCode::Key2) {
+        Some(CellIndex::TOP_MIDDLE)
+    } else if is_key_pressed(KeyCode::Key3) {
+        Some(CellIndex::TOP_RIGHT)
+    } else if is_key_pressed(KeyCode::Key4) {
+        Some(CellIndex::MIDDLE_LEFT)
+    } else if is_key_pressed(KeyCode::Key5) {
+        Some(CellIndex::CENTER)
+    } else if is_key_pressed(KeyCode::Key6) {
+        Some(CellIndex::MIDDLE_RIGHT)
+    } else if is_key_pressed(KeyCode::Key7) {
+        Some(CellIndex::BOTTOM_LEFT)
+    } else if is_key_pressed(KeyCode::Key8) {
+        Some(CellIndex::BOTTOM_MIDDLE)
+    } else if is_key_pressed(KeyCode::Key9) {
+        Some(CellIndex::BOTTOM_RIGHT)
+    } else {
+        None
+    };
+}
 
 
 
