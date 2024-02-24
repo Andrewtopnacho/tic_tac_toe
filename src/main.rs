@@ -10,22 +10,23 @@ const HALF_CELL_SIZE: f32 = CELL_SIZE / 2.0;
 const THREE_HALF_CELL_SIZE: f32 = HALF_CELL_SIZE * 3.0;
 const THICKNESS: f32 = 3.5;
 const RADIUS: f32 = CELL_SIZE * 0.5;
+const NEGATIVE: f32 = -1.0;
 
 #[macroquad::main("Tic-Tac_Toe")]
 async fn main() {
     let mut state = GameState { 
         board: Board::default(), 
         is_x_turn: true,
-        is_over: false,
+        winner: None,
     };
 
     
 
     loop {
         clear_background(BLACK);
-        if !state.is_over {
+        if state.winner.is_none() {
 
-            let index_selected = get_keyboard_input();
+            let index_selected = get_mouse_input();
             
             if let Some(index) = index_selected {
                 let value = if state.is_x_turn {Cell::X} else {Cell::O};
@@ -35,7 +36,7 @@ async fn main() {
     
             draw_board(screen_width() / 2.0, screen_height() / 2.0, &state.board);
             
-            state.is_over = state.board.get_winner().is_some(); 
+            state.winner = state.board.get_winner(); 
         } else {
             draw_game_over();
             if is_key_pressed(KeyCode::Space) {
@@ -52,6 +53,34 @@ async fn main() {
     }
     
 }
+fn calculate_cell_boundaries(board_center: (f32, f32)) -> [Rect; 9] {
+    let top_left_position = ((board_center.0 - THREE_HALF_CELL_SIZE), (board_center.1 - HALF_CELL_SIZE));
+    let left_position = ((board_center.0 - THREE_HALF_CELL_SIZE), (board_center.1 - HALF_CELL_SIZE));
+    let top_right_position = ((board_center.0 - THREE_HALF_CELL_SIZE), (board_center.1 + HALF_CELL_SIZE));
+    let top_position = ((board_center.0 - HALF_CELL_SIZE), (board_center.1 - THREE_HALF_CELL_SIZE));
+    let center_position = ((board_center.0 - HALF_CELL_SIZE), (board_center.1 - HALF_CELL_SIZE));
+    let bottom_position = ((board_center.0 - HALF_CELL_SIZE), (board_center.1 + HALF_CELL_SIZE));
+    let bottom_left_position = ((board_center.0 + HALF_CELL_SIZE), (board_center.1 - THREE_HALF_CELL_SIZE));
+    let right_position = ((board_center.0 + HALF_CELL_SIZE), (board_center.1 - HALF_CELL_SIZE));
+    let bottom_right_position = ((board_center.0 + HALF_CELL_SIZE), (board_center.1 + HALF_CELL_SIZE));
+    let boundaries = [
+        Rect::new(top_left_position.0, top_left_position.1, CELL_SIZE, CELL_SIZE),
+        Rect::new(left_position.0, left_position.1, CELL_SIZE, CELL_SIZE),
+        Rect::new(bottom_left_position.0, bottom_left_position.1, CELL_SIZE, CELL_SIZE),
+        Rect::new(top_position.0, top_position.1, CELL_SIZE, CELL_SIZE),
+        Rect::new(center_position.0, center_position.1, CELL_SIZE, CELL_SIZE),
+        Rect::new(bottom_position.0, bottom_position.1, CELL_SIZE, CELL_SIZE),
+        Rect::new(top_right_position.0, top_right_position.1, CELL_SIZE, CELL_SIZE),
+        Rect::new(right_position.0, right_position.1, CELL_SIZE, CELL_SIZE),
+        Rect::new(bottom_right_position.0, bottom_right_position.1, CELL_SIZE, CELL_SIZE),
+    ];
+    for boundary in boundaries.iter() {
+        draw_rectangle(boundary.x, boundary.y, boundary.w, boundary.h, RED)
+    }
+    return boundaries;
+    
+}
+
 fn draw_board(x: f32, y: f32, board: &Board) {
     draw_grid(x, y);
     for (cell_index, cell) in board.iter_enumerated() {
@@ -107,6 +136,18 @@ fn draw_x(x: f32, y: f32) {
     for line in lines.into_iter() {
         draw_line(line.0.0, line.0.1, line.1.0, line.1.1, THICKNESS, WHITE);
     }
+}
+fn get_mouse_input() -> Option<CellIndex> {
+    if is_mouse_button_pressed(MouseButton::Left) {
+        for (index, cell_boundary) in calculate_cell_boundaries((screen_height() / 2.0, screen_height() / 2.0)).into_iter().enumerate() {
+            if cell_boundary.contains(mouse_position().into()) {
+                let cell_index = CellIndex::try_from(index).expect("Index will always be in bounds because calculate_cell_index always has an array of 9");
+                println!("{:?}", cell_index);
+                return Some(cell_index);
+            }
+        }
+    }
+    return None;
 }
 fn get_keyboard_input() -> Option<CellIndex> {
     return if is_key_pressed(KeyCode::Key1) {
