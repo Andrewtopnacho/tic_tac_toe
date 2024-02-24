@@ -1,3 +1,4 @@
+use games::tic_tac_toe::GameState;
 use macroquad::prelude::*;
 use games::tic_tac_toe::board::{self, Board};
 use games::tic_tac_toe::cell::{Cell, CellIndex};
@@ -12,33 +13,40 @@ const RADIUS: f32 = CELL_SIZE * 0.5;
 
 #[macroquad::main("Tic-Tac_Toe")]
 async fn main() {
-    let mut board = Board::default();
-    let mut is_x_turn  = true;
-    let mut is_game_over = false;
+    let mut state = GameState { 
+        board: Board::default(), 
+        is_x_turn: true,
+        is_over: false,
+    };
+
     
 
     loop {
         clear_background(BLACK);
-        if !is_game_over {
+        if !state.is_over {
 
             let index_selected = get_keyboard_input();
             
             if let Some(index) = index_selected {
-                let value = if is_x_turn {Cell::X} else {Cell::O};
-                board.set_cell(index, value);
-                is_x_turn = !is_x_turn;
+                let value = if state.is_x_turn {Cell::X} else {Cell::O};
+                state.board.set_cell(index, value);
+                state.is_x_turn = !state.is_x_turn;
             }
     
-            draw_board(screen_width() / 2.0, screen_height() / 2.0, &board);
+            draw_board(screen_width() / 2.0, screen_height() / 2.0, &state.board);
             
-            is_game_over = board.get_winner().is_some(); 
+            state.is_over = state.board.get_winner().is_some(); 
         } else {
-            let text = "Press SPACE to PLAY AGAIN Press ESC to EXIT";
-            let font_size = screen_width() * 0.05; 
-            let text_width = measure_text(text, None, font_size as u16, 1.0).width;
-            let text_position = ((screen_width() - text_width) / 2.0, screen_height() / 2.0);
-            draw_text(text, text_position.0, text_position.1, font_size, WHITE);
+            draw_game_over();
+            if is_key_pressed(KeyCode::Space) {
+
+            }
+            if is_key_pressed(KeyCode::Escape) {
+                break;
+            } 
+                   
         }
+        
 
         next_frame().await
     }
@@ -122,6 +130,13 @@ fn get_keyboard_input() -> Option<CellIndex> {
     } else {
         None
     };
+}
+fn draw_game_over() {
+    let text = "Press SPACE to PLAY AGAIN Press ESC to EXIT";
+            let font_size = screen_width() * 0.05; 
+            let text_width = measure_text(text, None, font_size as u16, 1.0).width;
+            let text_position = ((screen_width() - text_width) / 2.0, screen_height() / 2.0);
+            draw_text(text, text_position.0, text_position.1, font_size, WHITE);
 }
 
 
