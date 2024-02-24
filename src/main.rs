@@ -1,6 +1,8 @@
-use macroquad::prelude::*;
+use macroquad::{miniquad::window::screen_size, prelude::*, ui::{hash, root_ui, widgets::Window}};
+use reqwest::Client;
 
 use games::tic_tac_toe::{GameState, Board, Cell, CellIndex};
+use server::session::TicTacToeUpdate;
 
 const BOARD_SIZE: f32 = 100.0;
 const CELL_SIZE: f32 = BOARD_SIZE / 1.5;
@@ -8,17 +10,12 @@ const HALF_CELL_SIZE: f32 = CELL_SIZE / 2.0;
 const THREE_HALF_CELL_SIZE: f32 = HALF_CELL_SIZE * 3.0;
 const THICKNESS: f32 = 3.5;
 const RADIUS: f32 = CELL_SIZE * 0.5;
-const NEGATIVE: f32 = -1.0;
 
 #[macroquad::main("Tic-Tac_Toe")]
 async fn main() {
-    let mut state = GameState { 
-        board: Board::default(), 
-        is_x_turn: true,
-        winner: None,
-    };
-
-    
+    let mut server_address = String::new();
+    let mut state = main_menu(&mut server_address).await;
+    let client = Client::new();
 
     loop {
         clear_background(BLACK);
@@ -26,11 +23,8 @@ async fn main() {
 
             let index_selected = get_keyboard_input();
             
-            if let Some(index) = index_selected {
-                let value = if state.is_x_turn {Cell::X} else {Cell::O};
-                state.board.set_cell(index, value);
-                state.is_x_turn = !state.is_x_turn;
-            }
+            // send update
+            client.put(&server_address).json(TicTacToeUpdate)
     
             draw_board(screen_width() / 2.0, screen_height() / 2.0, &state.board);
             
@@ -38,18 +32,36 @@ async fn main() {
         } else {
             draw_game_over();
             if is_key_pressed(KeyCode::Space) {
-
+                state = main_menu(&mut server_address).await;
             }
             if is_key_pressed(KeyCode::Escape) {
                 break;
             } 
                    
         }
-        
-
-        next_frame().await
-    }
     
+        next_frame().await
+    } 
+}
+async fn main_menu(server_address: &mut String) -> GameState {
+    loop {
+        let screen_size = screen_size().into();
+        let screen_origin = screen_size / 2.0;
+        let window = Window::new(0, Vec2::ZERO, screen_size);
+        window.ui(&mut root_ui(), |ui| {
+            ui.separator();
+            ui.separator();
+            ui.separator();
+            ui.input_text(hash!(), "Enter server ip", server_address);
+        });
+        if let Ok(response) = reqwest::get(server_address.clone()).await {
+            if let Ok(game_state) = response.json::<GameState>().await {
+                return game_state;
+            }
+        } else {
+            next_frame().await;
+        }
+    }
 }
 fn calculate_cell_boundaries(board_center: (f32, f32)) -> [Rect; 9] {
     let top_left_position = ((board_center.0 - THREE_HALF_CELL_SIZE), (board_center.1 - THREE_HALF_CELL_SIZE));
