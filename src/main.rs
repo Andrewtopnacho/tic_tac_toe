@@ -1,8 +1,6 @@
-use games::tic_tac_toe::GameState;
 use macroquad::prelude::*;
-use games::tic_tac_toe::board::{self, Board};
-use games::tic_tac_toe::cell::{Cell, CellIndex};
 
+use games::tic_tac_toe::{GameState, Board, Cell, CellIndex};
 
 const BOARD_SIZE: f32 = 100.0;
 const CELL_SIZE: f32 = BOARD_SIZE / 1.5;
