@@ -40,7 +40,12 @@ async fn main() {
         } else {
             None
         };
-        
+
+        if let Some(ref index) = index_selected {
+            let value = if is_x_turn {Cell::X} else {Cell::O};
+            board.set_cell(*index, value);
+        }
+
         draw_board(screen_width() / 2.0, screen_height() / 2.0, &board);
         
         if index_selected.is_some() {
