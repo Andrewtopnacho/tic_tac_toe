@@ -15,7 +15,7 @@ async fn main() {
     let mut board = Board::default();
     let mut is_x_turn  = true;
     let mut is_game_over = false;
-
+    
 
     loop {
         clear_background(BLACK);
